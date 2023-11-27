@@ -123,6 +123,7 @@ export const CalendarModal = () => {
         <div className="form-group mb-2">
           <label style={{ width: "100%"}}>Fecha y hora inicio</label>
           <DatePicker
+            minDate={formValues.start}
             selected={formValues.start}
             onChange={(event) => onDateChanged(event, 'start')}
             className="form-control"
