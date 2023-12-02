@@ -3,7 +3,7 @@ import { useCalendarStore, useUiStore } from "../../hooks"
 
 export const FabAddNew = () => {
 
-  const {openDateModal} = useUiStore();
+  const {openDateModal, isDateModalOpen} = useUiStore();
   const {setActiveEvent} = useCalendarStore();
 
   const handleClickNew = () => {
@@ -26,7 +26,10 @@ export const FabAddNew = () => {
   return (
     <button
       className="btn fab"
-      style={{backgroundColor: '#a370f7'}}
+      style={{
+        backgroundColor: '#a370f7',
+        display: isDateModalOpen ? 'none' : ''
+      }}
       onClick={handleClickNew}
     >
       <i className="fas fa-plus"></i>
