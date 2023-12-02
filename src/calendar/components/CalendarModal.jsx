@@ -10,7 +10,7 @@ import DatePicker, { registerLocale} from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import es from 'date-fns/locale/es';
-import { useCalendarStore, useUiStore } from '../../hooks';
+import { useCalendarStore, useUiStore, useUsersStore } from '../../hooks';
 
 registerLocale('es', es);
 
@@ -21,7 +21,7 @@ const customStyles = {
     right: 'auto',
     bottom: 'auto',
     marginRight: '-50%',
-    padding: '25px',
+    padding: '30px',
     transform: 'translate(-50%, -50%)',
   },
 };
@@ -33,14 +33,15 @@ export const CalendarModal = () => {
 
   const {isDateModalOpen, closeDateModal} = useUiStore();
   const {activeEvent, startSavingEvent} = useCalendarStore();
+  const {users, startLoadingUsers} = useUsersStore();
   const [formSubmitted, setFormSubmitted] = useState(false);
-
 
   const [formValues, setFormValues] = useState({
     title: '',
     notes: '',
     start: new Date(),
-    end: addHours(new Date(), 2)
+    end: addHours(new Date(), 2),
+    guestUsers: '',
   });
 
 
@@ -56,14 +57,15 @@ export const CalendarModal = () => {
 
 
   useEffect(() => {
-    
+    startLoadingUsers();
+  }, [isDateModalOpen]);
+
+
+  useEffect(() => {
     if (activeEvent !== null) {
       setFormValues({...activeEvent});
     }
-
   }, [activeEvent]);
-
-
 
   const onInputChange = ({target}) => {
     setFormValues({
@@ -105,6 +107,26 @@ export const CalendarModal = () => {
 
   };
 
+  const [optionsSelected, setOptionsSelected] = useState([]);
+  const [filter, setFilter] = useState('');
+
+  const handleChange = ({target}) => {
+    const optionSelected = Array.from(target.selectedOptions, (option) => option.value);
+    setOptionsSelected(optionSelected);
+    setFormValues({
+      ...formValues,
+      [target.name]: optionSelected
+    })
+  };
+
+  const handleFilterChange = ({target}) => {
+    setFilter(target.value);
+  };
+
+  const optionsFiltered = users.filter(
+    option => option.name.toLowerCase().includes(filter.toLowerCase())
+  );
+
 
   return (
     <Modal
@@ -116,7 +138,7 @@ export const CalendarModal = () => {
       closeTimeoutMS={200}
     >
 
-      <h1> Nuevo evento </h1>
+      <h1>Nuevo evento</h1>
       <hr />
       <form className="container" onSubmit={onSubmit}>
 
@@ -173,7 +195,36 @@ export const CalendarModal = () => {
             value={formValues.notes}
             onChange={onInputChange}
           ></textarea>
-          <small id="emailHelp" className="form-text text-muted">Información adicional</small>
+        </div>
+
+        <div className="form-group mb-4">
+          <small id="guestUsers" className="form-text text-muted">Agregar usuarios al evento</small>
+          <input
+            type="text"
+            className='form-control'
+            placeholder="Buscar usuarios..."
+            value={filter}
+            onChange={handleFilterChange}
+          />
+          <select
+            className="form-select my-2"
+            multiple
+            name="guestUsers"
+            value={formValues.guestUsers}
+            onChange={handleChange}
+          >
+            <option value="">Selecciona una opción</option>
+            {
+              optionsFiltered.map((user) => (
+                <option
+                  key={user._id}
+                  value={user._id}
+                >
+                  {user.name}
+                </option>
+              ))
+            }
+          </select>
         </div>
 
         <div className='container d-flex flex-row-reverse'>
